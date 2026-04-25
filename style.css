@@ -1,0 +1,35 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+#main-content {
+    display: flex;
+    gap: 20px;
+    background-color: rgb(163, 163, 163);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+#work-area {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#code-area, #terminal {
+    width: 300px;
+    height: 200px;
+    resize: none;
+}
+
+#terminal {
+    align-self: center;
+}
+
+#run-button {
+    align-self: flex-end;
+}
