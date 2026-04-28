@@ -47,7 +47,7 @@ button.addEventListener("click", function() {
         let print = code.match(reg_text_in_quotes)
         if (print != null){
             console.log(
-                "Palabra calve: imprimir \n",
+                "Palabra clave: imprimir \n",
                 "Dato: " + print[1]
             )
         } 

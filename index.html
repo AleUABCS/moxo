@@ -1,26 +1,54 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Moxo - Editor de Código</title>
+    <link rel="stylesheet" href="estilos/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <main>
-
-        <div id="main-content">
-            <div id="head">
-                <h1>Moxo</h1>
-                <label for="">Escribe aquí tu código</label>
+    <header>
+        <div class="header-content">
+            <h1>Moxo</h1>
+            <div class="div-botones">
+                <button id="run-button" class="btn btn-ejecutar">Ejecutar</button>
+                <button id="limpiar-btn" class="btn btn-limpiar">Limpiar</button>
             </div>
-                <textarea name="" id="code-area"></textarea>
-                <button id="run-button">Ejecutar</button>
-                <textarea name="" id="terminal" disabled></textarea>
         </div>
-
+    </header>
+ 
+    <main class="terminales">
+        <div class="panel panel-code">
+            <div class="panel-header">
+                <span class="panel-title">Editor</span>
+            </div>
+            <textarea 
+                id="code-area" 
+                class="code-area" 
+                placeholder="Escribe aquí tu código..."
+                spellcheck="false"
+            ></textarea>
+        </div>
+ 
+        <div class="divisor"></div>
+ 
+        <div class="panel panel-output">
+            <div class="panel-header">
+                <span class="panel-title">Salida</span>
+            </div>
+            <textarea 
+                id="terminal" 
+                class="terminal" 
+                readonly 
+                placeholder="Presiona ejecutar para ver el resultado..."
+                spellcheck="false"
+            ></textarea>
+        </div>
     </main>
-
-    <script src="keywords.js"></script>
+ 
+    <script src="funciones/keywords.js"></script>
 </body>
 </html>
