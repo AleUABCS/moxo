@@ -18,6 +18,7 @@ let leer
 // RegExp para cada palabra clave
 let reg_imprimir = /\bimprimir\b/
 let reg_imprimir_variable = /imprimir\s*(\S+)/ // Si el dato a imprimir no está entre comillas (es una variable o está mal)
+let reg_imprimir_con_operador = /imprimir\s*=\s*\S+/ // Comprueba si está el operador "=" entre imprimir y el dato a imprimir (por ejemplo: "imprimir = x" (lo cual es incorrecto))
 
 let reg_si = /\bsi\b/
 let reg_si_condicion = /si\s*\(([^)]*)\)/ // Texto entre paréntesis
@@ -25,6 +26,7 @@ let reg_si_tokens = /\s*(\S+)\s*([<>=!]+)\s*(\S+)\s*/ // Para separar los numero
 
 let reg_leer = /\bleer\b/
 let reg_leer_variable = /leer\s*(\S+)/
+let reg_texto_antes_leer = /\S+.*(?=leer)/ // Para comprobar si hay texto antes de la palabra leer
 
 let reg_mientras = /\bmientras\b/
 let reg_si_no = /\bsi_no\b/
@@ -44,21 +46,25 @@ button.addEventListener("click", function() {
     // Casos de cada palabra clave
     if (reg_imprimir.exec(code)) {
         console.log("[imprimir] enontrado")
-        let print = code.match(reg_text_in_quotes)
-        if (print != null){
-            console.log(
-                "Palabra clave: imprimir \n",
-                "Dato: " + print[1]
-            )
-        } 
-        else {
-            let print = code.match(reg_imprimir_variable)
-            if (print != null) {
+        if (code.match(reg_imprimir_con_operador)) {
+            console.log("Error: la palabra reservada [imprimir] no necesita un operador entre el dato y la palabra reservada [imprimir] (ejemplo correcto: imprimir x).")
+        } else {
+            let print = code.match(reg_text_in_quotes)
+            if (print != null){
                 console.log(
                     "Palabra clave: imprimir \n",
-                    "Dato: ", print[1]
+                    "Dato: " + print[1]
                 )
-                console.log("Valor: ", variables[print[1]])
+            } 
+            else {
+                let print = code.match(reg_imprimir_variable)
+                if (print != null) {
+                    console.log(
+                        "Palabra clave: imprimir \n",
+                        "Dato: ", print[1]
+                    )
+                    console.log("Valor: ", variables[print[1]])
+                }
             }
         }
     } 
@@ -84,15 +90,20 @@ button.addEventListener("click", function() {
     }
     if (reg_leer.exec(code)) {
         console.log("[leer] encontrado")
-        leer = code.match(reg_leer_variable)
-        if (leer != null) {
-            terminal.disabled = false
-            terminal.value = leer[1]+": "
+        if (code.match(reg_texto_antes_leer)) {
+            console.log("Error: La palabra reservada [leer] tiene que ser asignada a una variable (ejemplo correcto: leer = x)")
+        } else {
 
-            console.log(
-                "Palabra clave: leer \n",
-                "Dato : ", leer[1]
-            )
+            leer = code.match(reg_leer_variable)
+            if (leer != null) {
+                terminal.disabled = false
+                terminal.value = leer[1]+": "
+                
+                console.log(
+                    "Palabra clave: leer \n",
+                    "Dato : ", leer[1]
+                )
+            }
         }
     }
     if (reg_mientras.exec(code)) {
