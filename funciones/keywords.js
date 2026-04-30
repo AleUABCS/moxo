@@ -82,7 +82,7 @@ button.addEventListener("click", function() {
                 let right = tokens[3]
 
                 console.log(
-                    " Palbra clave: si \n",
+                    " Palbra clave: si \n", 
                     "Números: [", left, ", ", right, "] \n",
                     "Operador: ", "[", operator, "]")
             }
@@ -96,8 +96,7 @@ button.addEventListener("click", function() {
 
             leer = code.match(reg_leer_variable)
             if (leer != null) {
-                terminal.disabled = false
-                terminal.value = leer[1]+": "
+                writeTerminal(leer[1]+": ")
                 
                 console.log(
                     "Palabra clave: leer \n",
@@ -123,6 +122,7 @@ button.addEventListener("click", function() {
     }
 })
 
+// Al presionar ENTER en la terminal
 terminal.addEventListener("keydown", function saveVariable (e) {
     if (e.key === "Enter") {
         //Toma el texto después de los dos puntos ":"
@@ -133,3 +133,10 @@ terminal.addEventListener("keydown", function saveVariable (e) {
         }
     }
 })
+
+function writeTerminal (text) {
+    if (terminal.disabled == true) {
+        console.log("terminal habilitada")
+    }
+    terminal.value = text
+}
