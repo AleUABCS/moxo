@@ -161,7 +161,7 @@ function moxoExecute (code_block) {
 
                     if (flag && !isSingleLine) {
                         moxoExecute(if_code_block.join("\n"))
-                    } else {
+                    } else if (flag) {
                         moxoExecute(if_code_block)
                     }
                     
