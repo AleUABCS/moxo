@@ -229,6 +229,10 @@ function writeTerminal (text) {
     }
 }
 
+function writeError () {
+    terminal.value += "\n" + 
+}
+
 function writeConsole (text) {
     code_area.value += text
 }
