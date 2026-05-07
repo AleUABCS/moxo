@@ -64,10 +64,10 @@ function moxoExecute (code_block) {
         line = splitCode[i]
         if (reg_imprimir.exec(line)) {
             console.log("[imprimir] enontrado")
-            if (line.match(reg_imprimir_con_operador)) {
+            if (line.match(reg_imprimir_con_operador)) { // Caso de error: se intentó imprimir con operador entre la palabra clave y el texto
                 console.log("Error: la palabra reservada [imprimir] no necesita un operador entre el dato y la palabra reservada [imprimir] (ejemplo correcto: imprimir x).")
             } else {
-                let print = line.match(reg_text_in_quotes)
+                let print = line.match(reg_text_in_quotes) // Si se va a imprimir texto entre comillas
                 if (print != null){
                     console.log(
                         "Palabra clave: imprimir \n",
@@ -75,7 +75,7 @@ function moxoExecute (code_block) {
                     )
                     writeTerminal(print[1])
                 } 
-                else {
+                else { // Si lo que se va a imprimri es texto asigando a una variable ([imprimir x] por ejemplo)
                     let print = line.match(reg_imprimir_variable)
                     if (print != null) {
                         console.log(
@@ -83,6 +83,7 @@ function moxoExecute (code_block) {
                             "Dato: ", print[1]
                         )
                         console.log("Valor: ", variables[print[1]])
+                        writeTerminal(variables[print[1]])
                     }
                 }
             }
@@ -228,6 +229,10 @@ function writeTerminal (text) {
     }
 }
 
+function writeConsole (text) {
+    code_area.value += text
+}
+
 // Al presionar ENTER en la terminal
 terminal.addEventListener("keydown", function saveVariable (e) {
     if (e.key === "Enter") {
@@ -237,5 +242,12 @@ terminal.addEventListener("keydown", function saveVariable (e) {
             variables[leer[1]] = value[1]
             console.log("Valor guardado: " + value[1])
         }
+    }
+})
+
+code_area.addEventListener("keydown", function addTab (e) {
+    if (e.key === "Tab") {
+        e.preventDefault()
+        writeConsole ("\t")
     }
 })
