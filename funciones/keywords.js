@@ -230,7 +230,7 @@ function writeTerminal (text) {
 }
 
 function writeError () {
-    terminal.value += "\n" + 
+    terminal.value += "\n"
 }
 
 function writeConsole (text) {
