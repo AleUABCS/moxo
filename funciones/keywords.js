@@ -22,26 +22,33 @@ let reg_imprimir_con_operador = /imprimir\s*=\s*\S+/ // Comprueba si está el op
 
 let reg_si = /\bsi\b/
 let reg_si_condicion = /si\s*\(([^)]*)\)/ // Texto entre paréntesis
-let reg_si_tokens = /\s*(\S+)\s*([<>=!]+)\s*(\S+)\s*/ // Para separar los numeros y comparadores de la condición
+let reg_si_no = /\bsi_no\b/
+let reg_fin_si = /\bfin_si\b/
+let reg_fin_si_no = /\bfin_si_no\b/
 
 let reg_leer = /\bleer\b/
+let reg_leer_variable = /^[a-zA-Z_$][a-zA-Z0-9_$]*\s*=\s*leer$/ // Para leer el nombre de la variable a asignar el valor
 let reg_leer_variable = /leer\s*(\S+)/
 let reg_texto_antes_leer = /\S+.*(?=leer)/ // Para comprobar si hay texto antes de la palabra leer
 
 let reg_mientras = /\bmientras\b/
-let reg_si_no = /\bsi_no\b/
-let reg_fin_si = /\bfin_si\b/
-let reg_fin_si_no = /\bfin_si_no\b/
 let reg_fin_mientras = /\bfin_mientras\b/
+let reg_mientras_condicion = /mientras\s*\(([^)]*)\)/ // Para conseguir la condición del [mientras]
 
 // RegExp para texto entre comillas
 let reg_text_in_quotes = /"([^"]*)"/
 // RegExp para texto después de dos puntos ":"
 let reg_text_after_colon = /:\s*(.*)/
+// RegExp línea en blanco (blank)
+let reg_blank = /^\s*$/
+// RegExp para detectar nombres de variables
+let reg_variable = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
+// RegExp para separar los numeros o variables y comparadores de una condición
+let reg_tokens = /\s*(\S+)\s*([<>=!]+)\s*(\S+)\s*/
 
 button.addEventListener("click", function () {
     terminal.value = ""
-    code = code_area.value
+    code = code_area.value +"\n end"
     console.log("Código crudo: \n",code)
 
     moxoExecute(code)
@@ -95,75 +102,50 @@ function moxoExecute (code_block) {
             let condition = line.match(reg_si_condicion)
             
             if (condition != null) {
-                var flag = false
                 var if_code_block = []
-                var isSingleLine = false
-                
-                let tokens = condition[1].match(reg_si_tokens)
+                var if_else_code_block = []
+                var else_flag = false
+
+                let tokens = condition[1].match(reg_tokens)
                 if (tokens != null) {
-                    let left = tokens[1]
+                    var left = tokens[1]
                     let operator = tokens[2]
-                    let right = tokens[3]
+                    var right = tokens[3]
                     
-                    if (operator == "==") {
-                        if (left === right) {
-                            console.log("Condición = true")
-                            flag = true
-                        } else {
-                            console.log("Condición = false")
-                        }
-                    } else if (operator == "<") {
-                        if (left < right) {
-                            console.log("Condición = true")
-                            flag = true
-                        } else {
-                            console.log("Condición = false")
-                        }
-                    } else if (operator == ">") {
-                        if (left > right) {
-                            console.log("Condición = true")
-                            flag = true
-                        } else {
-                            console.log("Condición = false")
-                        }
-                    } else if (operator == "<=") {
-                        if (left <= right) {
-                            console.log("Condición = true")
-                            flag = true
-                        } else {
-                            console.log("Condición = false")
-                        }
-                    } else if (operator == ">=") {
-                        if (left >= right) {
-                            console.log("Condición = true")
-                            flag = true
-                        } else {
-                            console.log("Condición = false")
-                        }
-                    }
+                    flag = evaluateCondition(left, operator, right)
                     
-                    while (!splitCode[i].includes("{") && !isSingleLine) {
-                        i++
-                        if (splitCode[i].match(/[a-zA-Z0-9]/)) {
-                            isSingleLine = true
-                        }
-                    }
-                    if (!isSingleLine) {
-                        i++
-                    } else {
-                        if_code_block = splitCode[i]
-                    }
-                    while (!splitCode[i].includes("}") && !isSingleLine) {
+                    i++
+
+                    // Consumir líneas del bloque [si]
+                    while (!splitCode[i].includes("fin_si")) {
                         if_code_block.push(splitCode[i])
                         i++
                     }
 
-                    console.log(if_code_block)
+                    i++
 
-                    if (flag && !isSingleLine) {
+                    // Saltar líneas en blanco
+                    while (splitCode[i].match(reg_blank)) {
+                        i++
+                    }
+
+                    // Consumir líneas del [si_no] si las hay
+                    if (splitCode[i].match(reg_si_no)) {
+                        else_flag = true
+                        i++
+                        while (!splitCode[i].match(reg_fin_si_no)) {
+                            if_else_code_block.push(splitCode[i])
+                            i++
+                        }
+                    }
+
+                    console.log(if_code_block)
+                    console.log(if_else_code_block.length == 0? "No else" : if_else_code_block)
+
+                    if (flag) {
                         moxoExecute(if_code_block.join("\n"))
-                    } else if (flag) {
-                        moxoExecute(if_code_block)
+                    } else if (else_flag) {
+                        moxoExecute(if_else_code_block.join("\n"))
                     }
                     
                     console.log(
@@ -194,28 +176,93 @@ function moxoExecute (code_block) {
 
         if (reg_mientras.exec(line)) {
             console.log("[mientras] encontrado")
-        }
 
-        if (reg_si_no.exec(line)) {
-            console.log("[si_no] encontrado")
-        }
+            let condition = line.match(reg_mientras_condicion)
 
-        if (reg_fin_si.exec(line)) {
-            console.log("[fin_si] encontrado")
-        }
+            if (condition != null) {
+                let while_code_block = []
+                let flag = false
 
-        if (reg_fin_si_no.exec(line)) {
-            console.log("[fin_si_no] encontrado")
-        }
-        
-        if (reg_fin_mientras.exec(line)) {
-            console.log("[fin_mientras] encontrado")
+                let tokens = condition[1].match(reg_tokens)
+
+                let left = tokens[1]
+                let operator = tokens[2]
+                let right = tokens[3]
+
+                flag = evaluateCondition(left, operator, right)
+
+                i++
+
+                while (!splitCode[i].match(reg_fin_mientras)) {
+                    while_code_block.push(splitCode[i])
+                    i++
+                }
+                let x = 1
+                while (flag && x != 10) {
+                    flag = evaluateCondition(left, operator, right)
+                    moxoExecute(while_code_block.join("\n"))
+                    x++
+                }
+            }
         }
 
         i++
     }
 
 }
+
+function evaluateCondition(left, operator, right) {
+    let flag = false
+
+    // Si alguno de los token es una variable
+    if (left.match(reg_variable)) {
+        console.log("Valor de la variable " + "[" + left + "]" + ": " + variables[left])
+        left = variables[left]
+    }
+    if (right.match(reg_variable)) {
+        console.log("Valor de la variable " + right + ": " + variables[right])
+        right = variables[right]
+    }
+
+    if (operator == "==") {
+        if (left === right) {
+            console.log("Condición = true")
+            flag = true
+        } else {
+            console.log("Condición = false")
+        }
+    } else if (operator == "<") {
+        if (left < right) {
+            console.log("Condición = true")
+            flag = true
+        } else {
+            console.log("Condición = false")
+        }
+    } else if (operator == ">") {
+        if (left > right) {
+            console.log("Condición = true")
+            flag = true
+        } else {
+            console.log("Condición = false")
+        }
+    } else if (operator == "<=") {
+        if (left <= right) {
+            console.log("Condición = true")
+            flag = true
+        } else {
+            console.log("Condición = false")
+        }
+    } else if (operator == ">=") {
+        if (left >= right) {
+            console.log("Condición = true")
+            flag = true
+        } else {
+            console.log("Condición = false")
+        }
+    }
+    return flag
+}
+
 
 function writeTerminal (text) {
     if (terminal.disabled == true) {
