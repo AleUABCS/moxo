@@ -27,13 +27,15 @@ let reg_fin_si = /\bfin_si\b/
 let reg_fin_si_no = /\bfin_si_no\b/
 
 let reg_leer = /\bleer\b/
-let reg_leer_variable = /^[a-zA-Z_$][a-zA-Z0-9_$]*\s*=\s*leer$/ // Para leer el nombre de la variable a asignar el valor
-let reg_leer_variable = /leer\s*(\S+)/
+let reg_leer_variable = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*leer$/ // Para leer el nombre de la variable a asignar el valor
 let reg_texto_antes_leer = /\S+.*(?=leer)/ // Para comprobar si hay texto antes de la palabra leer
 
 let reg_mientras = /\bmientras\b/
 let reg_fin_mientras = /\bfin_mientras\b/
 let reg_mientras_condicion = /mientras\s*\(([^)]*)\)/ // Para conseguir la condición del [mientras]
+
+let reg_asignacion = /^([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(.+)$/
+let reg_operacion  = /[+\-*\/%]/
 
 // RegExp para texto entre comillas
 let reg_text_in_quotes = /"([^"]*)"/
@@ -45,6 +47,10 @@ let reg_blank = /^\s*$/
 let reg_variable = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
 // RegExp para separar los numeros o variables y comparadores de una condición
 let reg_tokens = /\s*(\S+)\s*([<>=!]+)\s*(\S+)\s*/
+// RegExp para obtener las variables en una operación
+let reg_variables_en_operacion = /[a-zA-Z_$][a-zA-Z0-9_$]*/g
+
+
 
 button.addEventListener("click", function () {
     terminal.value = ""
@@ -66,9 +72,39 @@ function moxoExecute (code_block) {
     
     var i = 0
     var line
+    let operation_line
 
     while (i < splitCode.length) {
         line = splitCode[i]
+
+        // Calcular operaciones si las hay
+        operation_line = line.match(reg_asignacion)
+        if (operation_line != null) {
+            console.log("Operación encontrada")
+            let operation = operation_line[2]
+            let operation_og = operation
+
+            // Convertir las variables a su valor
+            if (operation != "leer") {
+
+                let op_variables = operation.match(reg_variables_en_operacion)
+                if (op_variables != null) {
+                    for (let v of op_variables) {
+                        operation = operation.replaceAll(v, variables[v])
+                    }
+                }
+                
+                let result = eval(operation)
+                line = line.replace(operation_og, result)
+                
+                // Debug
+                console.log("Línea evaluada: " + line)
+                
+                // Asignar resultado a la variable
+                variables[operation_line[1]] = result
+            }
+        }
+
         if (reg_imprimir.exec(line)) {
             console.log("[imprimir] enontrado")
             if (line.match(reg_imprimir_con_operador)) { // Caso de error: se intentó imprimir con operador entre la palabra clave y el texto
@@ -158,10 +194,6 @@ function moxoExecute (code_block) {
 
         if (reg_leer.exec(line)) {
             console.log("[leer] encontrado")
-            if (line.match(reg_texto_antes_leer)) {
-                console.log("Error: La palabra reservada [leer] tiene que ser asignada a una variable (ejemplo correcto: leer = x)")
-            } else {
-                
                 leer = line.match(reg_leer_variable)
                 if (leer != null) {
                     writeTerminal(leer[1]+": ")
@@ -171,7 +203,6 @@ function moxoExecute (code_block) {
                         "Dato : ", leer[1]
                     )
                 }
-            }
         }
 
         if (reg_mientras.exec(line)) {
@@ -197,11 +228,12 @@ function moxoExecute (code_block) {
                     while_code_block.push(splitCode[i])
                     i++
                 }
-                let x = 1
-                while (flag && x != 10) {
-                    flag = evaluateCondition(left, operator, right)
-                    moxoExecute(while_code_block.join("\n"))
+                
+                let x = 0
+                while (flag && x != 100) {
                     x++
+                    moxoExecute(while_code_block.join("\n"))
+                    flag = evaluateCondition(left, operator, right)
                 }
             }
         }
@@ -211,17 +243,50 @@ function moxoExecute (code_block) {
 
 }
 
+// function calculate (left, operator, right) {
+//     switch (operator) {
+//         case '+' :
+//             return left + right
+//         break
+
+//         case '-' :
+//             return left - right
+//         break
+
+//         case '/' :
+//             return left / right
+//         break
+
+//         case '*' :
+//             return left * right
+//         break
+//     }
+//     return null
+// }
+
+function calcOperation(expr) {
+    try {
+        return eval(expr)
+    } catch {
+        return expr
+    }
+}
+
 function evaluateCondition(left, operator, right) {
     let flag = false
 
     // Si alguno de los token es una variable
     if (left.match(reg_variable)) {
         console.log("Valor de la variable " + "[" + left + "]" + ": " + variables[left])
-        left = variables[left]
+        left = Number(variables[left])
+    } else {
+        left = Number(left)
     }
     if (right.match(reg_variable)) {
         console.log("Valor de la variable " + right + ": " + variables[right])
-        right = variables[right]
+        right = Number(variables[right])
+    } else {
+        right = Number(right)
     }
 
     if (operator == "==") {
