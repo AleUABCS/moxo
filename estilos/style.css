@@ -261,3 +261,8 @@ textarea::-webkit-scrollbar-thumb:hover {
         font-size: 0.85rem;
     }
 }
+
+#errors-terminal {
+    background-color: #141514;
+    color: rgb(213, 32, 32);
+}

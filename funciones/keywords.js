@@ -9,7 +9,10 @@ let code_area = document.getElementById("code-area")
 let button = document.getElementById("run-button")
 // Terminal
 let terminal = document.getElementById("terminal")
-// Función del botón
+// Panel de errores
+let errors_terminal = document.getElementById("errors-terminal")
+// Variable global para esperar el enter en terminal
+let onEnter = null
 
 //Esta variable es global para que el eventListener de la terminal peuda conseguir su valor,
 //es el nombre (String) de la nueva variable a almacenar
@@ -53,7 +56,9 @@ let reg_variables_en_operacion = /[a-zA-Z_$][a-zA-Z0-9_$]*/g
 
 
 button.addEventListener("click", function () {
+    variables = {}
     terminal.value = ""
+    errors_terminal.value = ""
     code = code_area.value +"\n end"
     console.log("Código crudo: \n",code)
 
@@ -61,7 +66,7 @@ button.addEventListener("click", function () {
 })
 
 // Divide el código en líneas y evalúa y ejecuta los tokens línea por línea
-function moxoExecute (code_block) {
+async function moxoExecute (code_block) {
     let splitCode = code_block.split("\n") // Separar código por líneas
 
     // Para debug
@@ -94,7 +99,14 @@ function moxoExecute (code_block) {
                     }
                 }
                 
-                let result = eval(operation)
+                let result = calcOperation(operation)
+                if (result == null && !line.includes("imprimir")) {  
+                    writeError(
+                    "Alguno de los operadores que usaste en la línea [" + (i+1) + "] no parece ser un operador real" +
+                    " o válido en este lenguaje. Los operadores válidos son: + (suma), - (resta), * (multiplicación)" + 
+                    ", / (división)")
+                }
+
                 line = line.replace(operation_og, result)
                 
                 // Debug
@@ -105,10 +117,11 @@ function moxoExecute (code_block) {
             }
         }
 
+        // -imprimir
         if (reg_imprimir.exec(line)) {
             console.log("[imprimir] enontrado")
             if (line.match(reg_imprimir_con_operador)) { // Caso de error: se intentó imprimir con operador entre la palabra clave y el texto
-                console.log("Error: la palabra reservada [imprimir] no necesita un operador entre el dato y la palabra reservada [imprimir] (ejemplo correcto: imprimir x).")
+                writeError("La instrucción [imprimir] no necesita un operador. Ejemplo correcto: (imprimir x).")
             } else {
                 let print = line.match(reg_text_in_quotes) // Si se va a imprimir texto entre comillas
                 if (print != null){
@@ -126,6 +139,11 @@ function moxoExecute (code_block) {
                             "Dato: ", print[1]
                         )
                         console.log("Valor: ", variables[print[1]])
+
+                        variables[print[1]] ?? writeError(
+                            "La variable [" + print[1] + "] no existe. Para poder imprimir una variable "+
+                            "tienes que definirla primero de esta forma (variable = valor)"
+                        )
                         writeTerminal(variables[print[1]])
                     }
                 }
@@ -149,7 +167,6 @@ function moxoExecute (code_block) {
                     var right = tokens[3]
                     
                     flag = evaluateCondition(left, operator, right)
-                    
                     i++
 
                     // Consumir líneas del bloque [si]
@@ -203,6 +220,7 @@ function moxoExecute (code_block) {
                         "Dato : ", leer[1]
                     )
                 }
+            await waitForEnter()
         }
 
         if (reg_mientras.exec(line)) {
@@ -230,7 +248,7 @@ function moxoExecute (code_block) {
                 }
                 
                 let x = 0
-                while (flag && x != 100) {
+                while (flag && x < 500) { // Límite de 500 por si se ciclaaa
                     x++
                     moxoExecute(while_code_block.join("\n"))
                     flag = evaluateCondition(left, operator, right)
@@ -264,68 +282,109 @@ function moxoExecute (code_block) {
 //     return null
 // }
 
+function waitForEnter() {
+  return new Promise(resolve => {
+    onEnter = (val) => { onEnter = null; resolve(val); };
+  });
+}
+
 function calcOperation(expr) {
     try {
         return eval(expr)
     } catch {
-        return expr
+        return null
     }
 }
 
 function evaluateCondition(left, operator, right) {
     let flag = false
+    let left_null = false
+    let right_null = false
 
     // Si alguno de los token es una variable
     if (left.match(reg_variable)) {
         console.log("Valor de la variable " + "[" + left + "]" + ": " + variables[left])
-        left = Number(variables[left])
+        if (variables[left] != null)
+            left = Number(variables[left])
+        else left_null = true
     } else {
         left = Number(left)
     }
     if (right.match(reg_variable)) {
         console.log("Valor de la variable " + right + ": " + variables[right])
-        right = Number(variables[right])
+        if (variables[right] != null)
+            right = Number(variables[right])
+        else right_null = true
     } else {
         right = Number(right)
     }
-
-    if (operator == "==") {
-        if (left === right) {
-            console.log("Condición = true")
-            flag = true
+    
+    if (!left_null && !right_null) {
+        if (operator == "==") {
+            if (left === right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
+        } else if (operator == "<") {
+            if (left < right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
+        } else if (operator == ">") {
+            if (left > right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
+        } else if (operator == "<=") {
+            if (left <= right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
+        } else if (operator == ">=") {
+            if (left >= right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
+        } else if (operator == "!=") {
+            if (left != right) {
+                console.log("Condición = true")
+                flag = true
+            } else {
+                console.log("Condición = false")
+            }
         } else {
-            console.log("Condición = false")
+            writeError(
+                "El comparador que utilizaste no parece ser un comparador real o válido en este lenguaje. " + 
+                "Los operadores válidos son: \n" +
+                "== (igual), > (mayor que), < (menor que), >= (mayor o igual), " + 
+                "<= (menor o igual), != (diferente de)"
+            )
         }
-    } else if (operator == "<") {
-        if (left < right) {
-            console.log("Condición = true")
-            flag = true
-        } else {
-            console.log("Condición = false")
+    } else {
+        if (left_null) {
+            writeError(
+                "La variable [" + left + "] no existe. Para usar una variable primero tienes que definirla " +
+                "de la siguiente forma (variable = valor)"
+            )
         }
-    } else if (operator == ">") {
-        if (left > right) {
-            console.log("Condición = true")
-            flag = true
-        } else {
-            console.log("Condición = false")
-        }
-    } else if (operator == "<=") {
-        if (left <= right) {
-            console.log("Condición = true")
-            flag = true
-        } else {
-            console.log("Condición = false")
-        }
-    } else if (operator == ">=") {
-        if (left >= right) {
-            console.log("Condición = true")
-            flag = true
-        } else {
-            console.log("Condición = false")
+        if (right_null) {
+            writeError(
+                "La variable [" + right + "] no existe. Para usar una variable primero tienes que definirla " +
+                "de la siguiente forma (variable = valor)"
+            )
         }
     }
-    return flag
+        return flag
 }
 
 
@@ -341,12 +400,15 @@ function writeTerminal (text) {
     }
 }
 
-function writeError () {
-    terminal.value += "\n"
-}
-
 function writeConsole (text) {
     code_area.value += text
+}
+
+function writeError (error_text) {
+    if (errors_terminal.value == "")
+        errors_terminal.value += error_text
+    else
+        errors_terminal.value += "\n" + error_text
 }
 
 // Al presionar ENTER en la terminal
@@ -358,6 +420,8 @@ terminal.addEventListener("keydown", function saveVariable (e) {
             variables[leer[1]] = value[1]
             console.log("Valor guardado: " + value[1])
         }
+        if (onEnter) 
+            onEnter()
     }
 })
 
