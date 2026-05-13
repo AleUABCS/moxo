@@ -15,7 +15,6 @@
             <h1>Moxo</h1>
             <div class="div-botones">
                 <button id="run-button" class="btn btn-ejecutar">Ejecutar</button>
-                <button id="limpiar-btn" class="btn btn-limpiar">Limpiar</button>
             </div>
         </div>
     </header>
@@ -37,7 +36,7 @@
  
         <div class="panel panel-output">
             <div class="panel-header">
-                <span class="panel-title">Salida</span>
+                <span class="panel-title">Terminal</span>
             </div>
             <textarea 
                 id="terminal" 
@@ -48,14 +47,102 @@
             ></textarea>
 
             <div class="panel-header">
-                <span class="panel-title">Errores</span>
+                <button class="panel-title-button" id="error-panel-button">Errores</button>
+                <button class="panel-title-button" id="help-button">Ayuda</button>
             </div>
             <textarea 
                 id="errors-terminal"
                 readonly
             >
             </textarea>
-        </div>
+            <div id="help-panel" style="display: none;">
+
+                <details class="help-item">
+                    <summary class="help-summary">Cómo mostrar texto en la terminal</summary>
+                    <div class="help-body">
+                    <pre class="help-code">
+Ejemplos:
+
+imprimir variable
+imprimir "texto"</pre>
+                    <p>Muestra texto en la terminal. Puedes imprimir el valor de una variable o texto entre comillas.</p>
+                    </div>
+                </details>
+
+                <details class="help-item">
+                    <summary class="help-summary">Cómo crear variables</summary>
+                    <div class="help-body">
+                    <p>Formas:</p>
+                    <pre class="help-code">
+Ejemplos:
+
+nombreVariable1 = leer
+nombreVariable2 = 5
+nombreVariable3 = texto</pre>
+                    <p>Con "leer": presiona Ejecutar, escribe el valor en la terminal y presiona Enter. Con valor directo, se asigna en el código. 
+                    <p>Puedes asignarle un valor numérico o alfabético.</p>
+                    <p>Las variables pueden tener el nombre que quieras, pero solo puede estar conformado por letras, números y guión bajo. Tampoco puede empezar por un número.</p>
+                    </p>
+                    </div>
+                </details>
+
+                <details class="help-item">
+                    <summary class="help-summary">Cómo usar condiciones</summary>
+                    <div class="help-body">
+                    <pre class="help-code">si (valor1 comparador valor2)
+    bloque de código
+fin_si</pre>
+                    <p>Ejecuta el bloque solo si la condición es verdadera. Los comparadores son: == (igual),
+ > (mayor que)
+< (menor que) 
+>= (mayor o igual) 
+<= (menor o igual) 
+!= (no es igual a)
+</p>
+<pre class="help-code">
+Ejemplo:
+
+si (edad >= 18)
+    imprimir "Usted es mayor de edad"
+fin_si
+</pre>
+Este ejemplo significa: si la edad es mayor o igual a 18, entonces escribe en la terminal "Usted es mayor de edad"
+                    </div>
+                </details>
+
+                <details class="help-item">
+                    <summary class="help-summary">Cómo repetir código varias veces</summary>
+                    <div class="help-body">
+                    <pre class="help-code">mientras (valor1 comparador valor2)
+    bloque de código
+fin_mientras</pre>
+                    <p>Repite el bloque mientras la condición sea verdadera.</p>
+<pre class="help-code">
+Ejemplo:
+
+mientras (x < 10)
+    x = x + 1
+    imprimir x
+fin_mientras</pre>
+                    </div>
+                </details>
+
+                <details class="help-item">
+                    <summary class="help-summary">Operaciones — Asignar con cálculos</summary>
+                    <div class="help-body">
+                    <p>Al asignar valores puedes usar operaciones matemáticas: + (suma) - (resta)* (multiplicación) / (división)</p>
+                    <pre class="help-code">
+Ejemplos:
+
+nombreVariable = x + 1 / 2
+nombreVariable = x + 10 * 3
+nombreVariable = x - 3
+</pre>
+                    </div>
+                </details>
+
+            </div>       
+         </div>
     </main>
  
     <script src="funciones/keywords.js"></script>

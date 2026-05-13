@@ -13,6 +13,10 @@ let terminal = document.getElementById("terminal")
 let errors_terminal = document.getElementById("errors-terminal")
 // Variable global para esperar el enter en terminal
 let onEnter = null
+// Botón para mostrar panel de erorres
+let errors_button = document.getElementById("error-panel-button")
+// Botón para mostrar panel de ayuda
+let help_button = document.getElementById("help-button")
 
 //Esta variable es global para que el eventListener de la terminal peuda conseguir su valor,
 //es el nombre (String) de la nueva variable a almacenar
@@ -52,7 +56,8 @@ let reg_variable = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
 let reg_tokens = /\s*(\S+)\s*([<>=!]+)\s*(\S+)\s*/
 // RegExp para obtener las variables en una operación
 let reg_variables_en_operacion = /[a-zA-Z_$][a-zA-Z0-9_$]*/g
-
+// RegExp para obtener todos los valores de una operación, se tiene que usar split("=") primero
+let reg_valores_en_operacion = /[a-zA-Z_]\w*|\d+(\.\d+)?/g
 
 
 button.addEventListener("click", function () {
@@ -82,9 +87,14 @@ async function moxoExecute (code_block) {
     while (i < splitCode.length) {
         line = splitCode[i]
 
-        // Calcular operaciones si las hay
+        //-calcular
         operation_line = line.match(reg_asignacion)
         if (operation_line != null) {
+
+            let op_right = line.split("=")[1]
+            let values = op_right.match(reg_valores_en_operacion)
+            let op_lenght = values.length
+
             console.log("Operación encontrada")
             let operation = operation_line[2]
             let operation_og = operation
@@ -96,24 +106,29 @@ async function moxoExecute (code_block) {
                 if (op_variables != null) {
                     for (let v of op_variables) {
                         operation = operation.replaceAll(v, variables[v])
+                        if (!variables[v] && !Number(v) && op_lenght > 1){
+                            writeError("Parece que una de las variables con las que hiciste una operación no es un número. Solo puedes hacer operaciones con variables que tengan un valor numérico")
+                        }
                     }
                 }
                 
                 let result = calcOperation(operation)
-                if (result == null && !line.includes("imprimir")) {  
+                if (result == null && op_lenght > 1) {  
                     writeError(
                     "Alguno de los operadores que usaste en la línea [" + (i+1) + "] no parece ser un operador real" +
                     " o válido en este lenguaje. Los operadores válidos son: + (suma), - (resta), * (multiplicación)" + 
-                    ", / (división)")
+                    ", / (división), % (módulo)")
                 }
 
-                line = line.replace(operation_og, result)
+                if (op_lenght > 1) line = line.replace(operation_og, result)
+                else line.replace(operation_og, values[0])
                 
                 // Debug
                 console.log("Línea evaluada: " + line)
                 
                 // Asignar resultado a la variable
-                variables[operation_line[1]] = result
+                if (op_lenght > 1) variables[operation_line[1]] = result
+                else variables[operation_line[1]] = values[0]
             }
         }
 
@@ -142,7 +157,7 @@ async function moxoExecute (code_block) {
 
                         variables[print[1]] ?? writeError(
                             "La variable [" + print[1] + "] no existe. Para poder imprimir una variable "+
-                            "tienes que definirla primero de esta forma (variable = valor)"
+                            "tienes que crearla primero de esta forma (variable = valor)"
                         )
                         writeTerminal(variables[print[1]])
                     }
@@ -150,6 +165,7 @@ async function moxoExecute (code_block) {
             }
         }
 
+        // -si
         if (reg_si.exec(line)) {
             console.log("[si] encontrado")
             
@@ -172,6 +188,9 @@ async function moxoExecute (code_block) {
                     // Consumir líneas del bloque [si]
                     while (!splitCode[i].includes("fin_si")) {
                         if_code_block.push(splitCode[i])
+                        if (splitCode[i].match("end")) writeError(
+                            "Faltó agregar [fin_si] al final del cuerpo de la esctructura condicional [si]"
+                        )
                         i++
                     }
 
@@ -209,6 +228,7 @@ async function moxoExecute (code_block) {
             }
         }
 
+        // -leer
         if (reg_leer.exec(line)) {
             console.log("[leer] encontrado")
                 leer = line.match(reg_leer_variable)
@@ -223,6 +243,7 @@ async function moxoExecute (code_block) {
             await waitForEnter()
         }
 
+        // -mientras
         if (reg_mientras.exec(line)) {
             console.log("[mientras] encontrado")
 
@@ -244,6 +265,9 @@ async function moxoExecute (code_block) {
 
                 while (!splitCode[i].match(reg_fin_mientras)) {
                     while_code_block.push(splitCode[i])
+                    if (splitCode[i].match("end")) writeError(
+                            "Faltó agregar [fin_mientras] al final del cuerpo de la esctructura condicional [mientras]"
+                        )
                     i++
                 }
                 
@@ -260,27 +284,6 @@ async function moxoExecute (code_block) {
     }
 
 }
-
-// function calculate (left, operator, right) {
-//     switch (operator) {
-//         case '+' :
-//             return left + right
-//         break
-
-//         case '-' :
-//             return left - right
-//         break
-
-//         case '/' :
-//             return left / right
-//         break
-
-//         case '*' :
-//             return left * right
-//         break
-//     }
-//     return null
-// }
 
 function waitForEnter() {
   return new Promise(resolve => {
@@ -414,6 +417,7 @@ function writeError (error_text) {
 // Al presionar ENTER en la terminal
 terminal.addEventListener("keydown", function saveVariable (e) {
     if (e.key === "Enter") {
+        e.preventDefault()
         //Toma el texto después de los dos puntos ":"
         let value = terminal.value.match(reg_text_after_colon)
         if (value != null) {
@@ -422,6 +426,7 @@ terminal.addEventListener("keydown", function saveVariable (e) {
         }
         if (onEnter) 
             onEnter()
+        terminal.value = ""
     }
 })
 
@@ -430,4 +435,14 @@ code_area.addEventListener("keydown", function addTab (e) {
         e.preventDefault()
         writeConsole ("\t")
     }
+})
+
+help_button.addEventListener("click", function () {
+    document.getElementById("errors-terminal").style.display = "none"
+    document.getElementById("help-panel").style.display = "block"
+})
+
+errors_button.addEventListener("click", function () {
+    document.getElementById("help-panel").style.display = "none"
+    document.getElementById("errors-terminal").style.display = "block"
 })

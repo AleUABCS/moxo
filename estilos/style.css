@@ -266,3 +266,61 @@ textarea::-webkit-scrollbar-thumb:hover {
     background-color: #141514;
     color: rgb(213, 32, 32);
 }
+
+.panel-title-button {
+    background-color: var(--bg-panel);
+    color: var(--text-secondary);
+    width: 80px;
+    height: 30px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 16px;
+    border: none;
+}
+
+.panel-title-button:hover{
+    background-color: var(--bg-primary);
+}
+
+.panel-title-button:active {
+    background-color: var(--bg-secondary);
+}
+
+#help-panel {
+  background-color: #252525;
+  color: white;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.help-item {
+  border-bottom: 1px solid #3a3a3a;
+  padding: 4px 0;
+}
+
+.help-summary {
+  cursor: pointer;
+  padding: 6px 4px;
+  font-size: 14px;
+  list-style: none; /* quita el triángulo por defecto en algunos browsers */
+}
+
+.help-summary:hover {
+  color: #aaa;
+}
+
+.help-body {
+  padding: 8px 12px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.help-code {
+  background-color: #1a1a1a;
+  padding: 8px;
+  border-left: 2px solid #555;
+  margin: 6px 0;
+  font-size: 12px;
+  white-space: pre;
+  color: #ddd;
+}
