@@ -15,6 +15,7 @@
             <h1>Moxo</h1>
             <div class="div-botones">
                 <button id="run-button" class="btn btn-ejecutar">Ejecutar</button>
+                <button id="clear-button" class="btn btn-limpiar">Limpiar</button>
             </div>
         </div>
     </header>
@@ -53,8 +54,8 @@
             <textarea 
                 id="errors-terminal"
                 readonly
-            >
-            </textarea>
+                placeholder="Aquí verás si tienes algún error."
+            ></textarea>
             <div id="help-panel" style="display: none;">
 
                 <details class="help-item">
@@ -92,7 +93,7 @@ nombreVariable3 = texto</pre>
                     <pre class="help-code">si (valor1 comparador valor2)
     bloque de código
 fin_si</pre>
-                    <p>Ejecuta el bloque solo si la condición es verdadera. Los comparadores son: == (igual),
+                    <p>Con esta instrucción se ejecuta el bloque de código solamente si la condición es verdadera. Los comparadores son: == (igual),
  > (mayor que)
 < (menor que) 
 >= (mayor o igual) 
@@ -107,6 +108,18 @@ si (edad >= 18)
 fin_si
 </pre>
 Este ejemplo significa: si la edad es mayor o igual a 18, entonces escribe en la terminal "Usted es mayor de edad"
+
+<pre class="help-code">
+Ejemplo extendido:
+
+si (edad >= 18)
+    imprimir "Usted es mayor de edad"
+fin_si
+si_no
+    imprimir "Usted no es mayor de edad"
+fin_si_no
+</pre>
+Este ejemplo es igual que el anterior, pero con la instrucción "si_no" puedes ejecutar un bloque de código diferente si la condición del primero no se cumple
                     </div>
                 </details>
 

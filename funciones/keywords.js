@@ -18,6 +18,8 @@ let errors_button = document.getElementById("error-panel-button")
 // Botón para mostrar panel de ayuda
 let help_button = document.getElementById("help-button")
 
+const clear_button = document.getElementById("clear-button")
+
 //Esta variable es global para que el eventListener de la terminal peuda conseguir su valor,
 //es el nombre (String) de la nueva variable a almacenar
 let leer    
@@ -98,7 +100,7 @@ async function moxoExecute (code_block) {
             console.log("Operación encontrada")
             let operation = operation_line[2]
             let operation_og = operation
-
+            let asignation = false
             // Convertir las variables a su valor
             if (operation != "leer") {
 
@@ -108,7 +110,7 @@ async function moxoExecute (code_block) {
                         operation = operation.replaceAll(v, variables[v])
                         if (!variables[v] && !Number(v) && op_lenght > 1){
                             writeError("Parece que una de las variables con las que hiciste una operación no es un número. Solo puedes hacer operaciones con variables que tengan un valor numérico")
-                        }
+                        } else if (variables[v] && op_lenght == 1) asignation = true
                     }
                 }
                 
@@ -127,7 +129,7 @@ async function moxoExecute (code_block) {
                 console.log("Línea evaluada: " + line)
                 
                 // Asignar resultado a la variable
-                if (op_lenght > 1) variables[operation_line[1]] = result
+                if (op_lenght > 1 || asignation) variables[operation_line[1]] = result
                 else variables[operation_line[1]] = values[0]
             }
         }
@@ -208,6 +210,8 @@ async function moxoExecute (code_block) {
                         while (!splitCode[i].match(reg_fin_si_no)) {
                             if_else_code_block.push(splitCode[i])
                             i++
+                            if (i >= splitCode.length)
+                                writeError("Te faltó agregar [fin_si_no] al final de la estructura condicional [si_no]")
                         }
                     }
 
@@ -445,4 +449,10 @@ help_button.addEventListener("click", function () {
 errors_button.addEventListener("click", function () {
     document.getElementById("help-panel").style.display = "none"
     document.getElementById("errors-terminal").style.display = "block"
+})
+
+clear_button.addEventListener("click", function () {
+    errors_terminal.value = ""
+    terminal.value = ""
+    code_area.value = ""
 })

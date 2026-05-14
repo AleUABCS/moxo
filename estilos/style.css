@@ -264,7 +264,7 @@ textarea::-webkit-scrollbar-thumb:hover {
 
 #errors-terminal {
     background-color: #141514;
-    color: rgb(213, 32, 32);
+    color: rgb(255, 104, 104);
 }
 
 .panel-title-button {
@@ -323,4 +323,9 @@ textarea::-webkit-scrollbar-thumb:hover {
   font-size: 12px;
   white-space: pre;
   color: #ddd;
+}
+
+#errors-terminal::placeholder {
+    color: rgb(255, 107, 107);
+    opacity: 0.6;
 }
